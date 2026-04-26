@@ -59,12 +59,11 @@ def main(transport: str, host: str, port: int, env_file: Optional[Path]):
 
     if transport != "stdio" and not os.environ.get("MCP_AUTH_TOKEN", "").strip():
         click.echo(
-            "Error: MCP_AUTH_TOKEN must be set when using HTTP transport.\n"
-            "Generate one with `openssl rand -hex 32` and set it as an env var.\n"
-            "Clients must send `Authorization: Bearer <token>` on every request.",
+            "Warning: MCP_AUTH_TOKEN is not set; HTTP transport will accept "
+            "unauthenticated requests. Use only for local dev or behind a "
+            "trusted proxy (e.g. Cloudflare Access).",
             err=True,
         )
-        sys.exit(1)
 
     from .server import build_server
 
