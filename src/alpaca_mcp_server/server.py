@@ -87,6 +87,23 @@ def _parse_toolsets() -> set[str] | None:
     return {t.strip() for t in raw.split(",") if t.strip()}
 
 
+def _build_inbound_auth():
+    """Return a static-bearer verifier when MCP_AUTH_TOKEN is set, else None.
+
+    Gates inbound HTTP requests on streamable-http/sse transports. Stdio has
+    no HTTP layer, so the verifier is harmless when unused.
+    """
+    token = os.environ.get("MCP_AUTH_TOKEN", "").strip()
+    if not token:
+        return None
+    from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
+
+    return StaticTokenVerifier(
+        tokens={token: {"client_id": "alpaca-mcp", "scopes": ["mcp:access"]}},
+        required_scopes=["mcp:access"],
+    )
+
+
 def build_server() -> FastMCP:
     """Construct the Alpaca MCP server from OpenAPI specs."""
     active_toolsets = _parse_toolsets()
@@ -124,7 +141,7 @@ def build_server() -> FastMCP:
             for c in clients:
                 await c.aclose()
 
-    main = FastMCP("Alpaca MCP Server", lifespan=lifespan)
+    main = FastMCP("Alpaca MCP Server", lifespan=lifespan, auth=_build_inbound_auth())
 
     if trading_client is not None:
         allowed = spec_ops["trading"]

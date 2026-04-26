@@ -233,12 +233,13 @@ Add to your MCP client config:
 All configuration is through environment variables set in your MCP client config. No files are written to disk.
 
 
-| Variable             | Required | Default | Description                                |
-| -------------------- | -------- | ------- | ------------------------------------------ |
-| `ALPACA_API_KEY`     | Yes      | —       | Your Alpaca API key                        |
-| `ALPACA_SECRET_KEY`  | Yes      | —       | Your Alpaca secret key                     |
-| `ALPACA_PAPER_TRADE` | No       | `true`  | Set to `false` for live trading            |
-| `ALPACA_TOOLSETS`    | No       | all     | Comma-separated list of toolsets to enable |
+| Variable             | Required        | Default | Description                                                          |
+| -------------------- | --------------- | ------- | -------------------------------------------------------------------- |
+| `ALPACA_API_KEY`     | Yes             | —       | Your Alpaca API key                                                  |
+| `ALPACA_SECRET_KEY`  | Yes             | —       | Your Alpaca secret key                                               |
+| `ALPACA_PAPER_TRADE` | No              | `true`  | Set to `false` for live trading                                      |
+| `ALPACA_TOOLSETS`    | No              | all     | Comma-separated list of toolsets to enable                           |
+| `MCP_AUTH_TOKEN`     | HTTP transports | —       | Static bearer token; clients must send `Authorization: Bearer <tok>` |
 
 
 ### Switching to Live Trading
@@ -575,6 +576,8 @@ For information about how Alpaca handles your data, please review:
 This server can place real trades and access your portfolio. Treat your API keys as sensitive credentials. Review all actions proposed by the LLM carefully, especially for complex options strategies or multi-leg trades.
 
 **HTTP Transport Security**: When using HTTP transport, the server defaults to localhost (127.0.0.1:8000) for security. For remote access, you can bind to all interfaces with `--host 0.0.0.0`, use SSH tunneling (`ssh -L 8000:localhost:8000 user@server`), or set up a reverse proxy with authentication for secure access.
+
+**Bearer-token auth (HTTP only)**: When `--transport streamable-http` or `--transport sse` is used, `MCP_AUTH_TOKEN` is **required** — the server refuses to start without it. Every request must include `Authorization: Bearer <MCP_AUTH_TOKEN>`; missing/incorrect tokens get a 401. Generate a token with `openssl rand -hex 32` and configure it identically on the server's env and the MCP client's connector settings. Stdio transport ignores this variable since there is no HTTP layer.
 
 ## Support
 
